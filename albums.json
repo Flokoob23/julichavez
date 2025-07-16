@@ -1,0 +1,12 @@
+{
+  "albums": [
+    {
+      "name": "Viajes",
+      "photos": ["viaje1.jpg", "viaje2.jpg"]
+    },
+    {
+      "name": "Retratos",
+      "photos": ["retrato1.jpg", "retrato2.jpg"]
+    }
+  ]
+}

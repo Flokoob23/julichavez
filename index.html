@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JULI CHAVEZ Fotografía</title>
+<style>
+  body {
+    margin: 0;
+    background: #ff69b4; /* rosa */
+    color: black;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    overflow-x: hidden;
+  }
+  #logo {
+    font-size: 4rem;
+    font-weight: bold;
+    margin-top: 40vh;
+    transition: all 1s ease;
+    position: relative;
+  }
+  #subtitle {
+    font-size: 2rem;
+    margin-top: 10px;
+  }
+  .logo-small {
+    font-size: 1.5rem !important;
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    margin: 0 !important;
+  }
+  #albums {
+    margin-top: 40px;
+  }
+  #albums button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    border: none;
+    background-color: black;
+    color: #ff69b4;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+  }
+  #albums button:hover {
+    background-color: #c71585;
+  }
+  #photos {
+    margin-top: 20px;
+  }
+  #photos img {
+    width: 150px;
+    margin: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: transform 0.3s;
+  }
+  #photos img:hover {
+    transform: scale(1.1);
+  }
+  /* Modal visor */
+  #modal {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 1000;
+  }
+  #modal img {
+    max-width: 80vw;
+    max-height: 80vh;
+    border-radius: 10px;
+  }
+  #modal button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: black;
+    color: #ff69b4;
+    transition: background-color 0.3s;
+  }
+  #modal button:hover {
+    background-color: #c71585;
+  }
+  /* Carrito */
+  #cart {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background-color: white;
+    padding: 10px;
+    border: 1px solid black;
+    max-width: 300px;
+    z-index: 1001;
+    border-radius: 5px;
+  }
+  #cart h4 {
+    margin: 0 0 10px 0;
+  }
+  #cart button {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: black;
+    color: #ff69b4;
+    transition: background-color 0.3s;
+  }
+  #cart button:hover {
+    background-color: #c71585;
+  }
+  /* Resumen compra */
+  #resumen {
+    position: fixed;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: white;
+    padding: 20px;
+    border: 2px solid black;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 1002;
+    border-radius: 10px;
+    text-align: center;
+  }
+  #resumen img {
+    width: 100px;
+    margin: 5px;
+    border-radius: 5px;
+  }
+  #resumen button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: black;
+    color: #ff69b4;
+    transition: background-color 0.3s;
+  }
+  #resumen button:hover {
+    background-color: #c71585;
+  }
+</style>
+</head>
+<body>
+
+<!-- Logo e inicio -->
+<div id="logo">JULI CHAVEZ</div>
+<div id="subtitle">fotografía</div>
+
+<!-- Contenedor botones álbumes -->
+<div id="albums" style="display:none;"></div>
+
+<!-- Contenedor fotos -->
+<div id="photos" style="display:none;"></div>
+
+<!-- Modal visor -->
+<div id="modal" style="display:none;"></div>
+
+<!-- Carrito -->
+<div id="cart" style="display:none;"></div>
+
+<!-- Resumen compra -->
+<div id="resumen" style="display:none;"></div>
+
+<script>
+  // Variables globales para el visor y carrito
+  let currentIndex = 0;
+  let currentAlbumPhotos = [];
+  let currentAlbumName = '';
+  let carrito = [];
+
+  // Paso 1: Animar logo y cargar álbumes después de 3 segundos
+  setTimeout(() => {
+    const logo = document.getElementById('logo');
+    const subtitle = document.getElementById('subtitle');
+    logo.classList.add('logo-small');
+    subtitle.style.display = 'none';
+
+    // Mostrar botones álbumes
+    loadAlbums();
+  }, 3000);
+
+  // Paso 2: Cargar álbumes desde albums.json
+  function loadAlbums() {
+    const albumsDiv = document.getElementById('albums');
+    albumsDiv.style.display = 'block';
+
+    fetch('albums.json')
+      .then(response => response.json())
+      .then(data => {
+        data.albums.forEach(album => {
+          const btn = document.createElement('button');
+          btn.textContent = album.name;
+          btn.onclick = () => showPhotos(album);
+          albumsDiv.appendChild(btn);
+        });
+      })
+      .catch(err => {
+        albumsDiv.textContent = "Error cargando álbumes";
+        console.error(err);
+      });
+  }
+
+  // Paso 3: Mostrar fotos en miniatura al elegir un álbum
+  function showPhotos(album) {
+    const albumsDiv = document.getElementById('albums');
+    albumsDiv.style.display = 'none';
+
+    const photosDiv = document.getElementById('photos');
+    photosDiv.style.display = 'block';
+    photosDiv.innerHTML = '';
+
+    album.photos.forEach(photo => {
+      const img = document.createElement('img');
+      img.src = fotos/${album.name}/${photo};
+      img.alt = photo;
+      img.onclick = () => showPhotoLarge(album.name, photo, album.photos);
+      photosDiv.appendChild(img);
+    });
+
+    // Botón volver a álbumes
+    let backBtn = document.getElementById('backAlbums');
+    if (!backBtn) {
+      backBtn = document.createElement('button');
+      backBtn.id = 'backAlbums';
+      backBtn.textContent = 'Volver a álbumes';
+      backBtn.style.marginTop = '20px';
+      backBtn.style.padding = '10px 20px';
+      backBtn.style.fontSize = '1rem';
+      backBtn.style.cursor = 'pointer';
+      backBtn.onclick = () => {
+        photosDiv.style.display = 'none';
+        albumsDiv.style.display = 'block';
+      };
+      photosDiv.appendChild(backBtn);
+    } else {
+      backBtn.style.display = 'inline-block';
+      photosDiv.appendChild(backBtn);
+    }
+  }
+
+  // Paso 4: Mostrar foto grande en modal con opciones "Siguiente" y "Agregar al carrito"
+  function showPhotoLarge(albumName, photoName, photosArray) {
+    currentAlbumPhotos = photosArray;
+    currentAlbumName = albumName;
+    currentIndex = photosArray.indexOf(photoName);
+
+    const modal = document.getElementById('modal');
+    modal.innerHTML = '';
+
+    const img = document.createElement('img');
+    img.src = fotos/${albumName}/${photosArray[currentIndex]};
+    img.alt = photosArray[currentIndex];
+
+    const btnNext = document.createElement('button');
+    btnNext.textContent = 'Siguiente';
+    btnNext.onclick = () => {
+      currentIndex = (currentIndex + 1) % photosArray.length;
+      showPhotoLarge(albumName, photosArray[currentIndex], photosArray);
+    };
+
+    const btnAddCart = document.createElement('button');
+    btnAddCart.textContent = 'Agregar al carrito';
+    btnAddCart.onclick = () => {
+      const photoId = ${albumName}/${photosArray[currentIndex]};
+      if (!carrito.includes(photoId)) {
+        carrito.push(photoId);
+        updateCart();
+        alert('Foto agregada al carrito');
+      } else {
+        alert('Esta foto ya está en el carrito');
+      }
+    };
+
+    const btnClose = document.createElement('button');
+    btnClose.textContent = 'Cerrar';
+    btnClose.onclick = () => {
+      modal.style.display = 'none';
+    };
+
+    modal.appendChild(img);
+    modal.appendChild(btnNext);
+    modal.appendChild(btnAddCart);
+    modal.appendChild(btnClose);
+
+    modal.style.display = 'flex';
+  }
+
+  // Paso 5: Actualizar carrito visible
+  function updateCart() {
+    const cartDiv = document.getElementById('cart');
+    if (carrito.length === 0) {
+      cartDiv.style.display = 'none';
+      return;
+    }
+    cartDiv.style.display = 'block';
+
+    cartDiv.innerHTML = `
+      <h4>Carrito</h4>
+      <p>${carrito.length} foto(s) - $${carrito.length * 1500}</p>
+      <button id="finalizarCompraBtn">Finalizar compra</button>
+    `;
+
+    document.getElementById('finalizarCompraBtn').onclick = () => {
+      showResumenCompra();
+    };
+  }
+
+  // Paso 6: Mostrar resumen de compra con miniaturas y botón WhatsApp
+  function showResumenCompra() {
+    const resumenDiv = document.getElementById('resumen');
+    resumenDiv.innerHTML = '<h3>Resumen de compra</h3>';
+
+    carrito.forEach(photoId => {
+      const img = document.createElement('img');
+      img.src = fotos/${photoId};
+      img.alt = photoId;
+      resumenDiv.appendChild(img);
+    });
+
+    resumenDiv.innerHTML += <p><b>Total: $${carrito.length * 1500}</b></p>;
+
+    const btnWsp = document.createElement('button');
+    btnWsp.textContent = 'Enviar pedido por WhatsApp';
+    btnWsp.onclick = () => {
+      const fotosNombres = carrito.map(f => f.split('/')[1]).join(', ');
+      const mensaje = encodeURIComponent(HOLA QUIERO COMPRAR LAS SIGUIENTES FOTOS: ${fotosNombres});
+      window.open(https://wa.me/543584328924?text=${mensaje}, '_blank');
+    };
+
+    resumenDiv.appendChild(btnWsp);
+    resumenDiv.style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
